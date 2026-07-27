@@ -1,0 +1,175 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Task Management API",
+    "version": "1.0.0",
+    "description": "REST API for authentication, RBAC, task management, assignment, and analytics"
+  },
+  "servers": [
+    { "url": "http://localhost:3000" }
+  ],
+  "paths": {
+    "/api/auth/register": {
+      "post": {
+        "summary": "Register a new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["username", "email", "password"],
+                "properties": {
+                  "username": { "type": "string" },
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string" },
+                  "role": { "type": "string", "enum": ["user", "manager", "admin"] },
+                  "team": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "User created" }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "Log in a user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["password"],
+                "properties": {
+                  "identifier": { "type": "string" },
+                  "email": { "type": "string", "format": "email" },
+                  "username": { "type": "string" },
+                  "password": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Login successful" }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "summary": "Logout the authenticated user",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Logout successful" } }
+      }
+    },
+    "/api/auth/profile": {
+      "get": {
+        "summary": "Get authenticated user profile",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Profile retrieved" } }
+      }
+    },
+    "/api/task/createtask": {
+      "post": {
+        "summary": "Create a task",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title"],
+                "properties": {
+                  "title": { "type": "string" },
+                  "description": { "type": "string" },
+                  "dueDate": { "type": "string", "format": "date-time" },
+                  "status": { "type": "string", "enum": ["Pending", "In Progress", "Completed"] },
+                  "priority": { "type": "string", "enum": ["Low", "Medium", "High"] },
+                  "assignedTo": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "201": { "description": "Task created" } }
+      }
+    },
+    "/api/task/alltasks": {
+      "get": {
+        "summary": "Get tasks with filter and pagination",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "status", "in": "query", "schema": { "type": "string" } },
+          { "name": "priority", "in": "query", "schema": { "type": "string" } },
+          { "name": "search", "in": "query", "schema": { "type": "string" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "Tasks retrieved" } }
+      }
+    },
+    "/api/task/assigned": {
+      "get": {
+        "summary": "Get assigned tasks for the current user",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Assigned tasks retrieved" } }
+      }
+    },
+    "/api/task/{id}": {
+      "put": {
+        "summary": "Update a task",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Task updated" } }
+      },
+      "delete": {
+        "summary": "Delete a task",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Task deleted" } }
+      }
+    },
+    "/api/task/{id}/assign": {
+      "patch": {
+        "summary": "Assign a task to a user",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["assignedTo"],
+                "properties": { "assignedTo": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Task assigned" } }
+      }
+    },
+    "/api/task/analytics": {
+      "get": {
+        "summary": "Get task analytics",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Analytics retrieved" } }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
